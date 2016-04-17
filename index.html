@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+        <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+        <title>CityBike NYC Availability</title>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    </head>
+
+    <body>
+        <div id="mapid" style="height:660px"></div>
+        <script>
+            var c = d3.scale.linear().domain([0.0, 1.0]).range(["red", "blue"]);
+            var mymap = L.map('mapid').setView([40.764, -73.963], 12);
+            L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+                maxZoom: 18,
+                id: 'kchoi01.pln5hcna',
+                accessToken: 'pk.eyJ1Ijoia2Nob2kwMSIsImEiOiJjaW15Yzk4cmMwNDE0djlra3dpc3Z4emZuIn0.rQMgnXH5JO8Z2KFptgBU3g'
+                }).addTo(mymap);
+                
+            function UpdateMarkers(d)
+            {
+                for (var i = 0; i < d['stationBeanList'].length; ++i)
+                {
+                    var station = d['stationBeanList'][i];
+                    var color = "gray";
+                    if (station['statusValue'] == "In Service")
+                    {
+                        color = c(station['availableDocks']/station['totalDocks']);
+                    }
+                    var circle = L.circle([station['latitude'], station['longitude']], station['totalDocks']*2,
+                    {
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.8
+                    }).addTo(mymap);
+                    
+                    circle.bindPopup(station['stAddress1']+"<br>"+station['availableDocks']+" / "+station['totalDocks']+" docks");
+                }
+            }
+            
+            $.getJSON( "./bikes.json", UpdateMarkers);
+        </script>
+    </body>
+</html>
